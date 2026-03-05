@@ -117,11 +117,15 @@ app.delete('/api/requests/:id', (req, res) => {
 
 // Serve HTML pages
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 app.get('/client', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'client.html'));
+});
+
+app.get('/admin-login', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin-login.html'));
 });
 
 app.get('/admin', (req, res) => {
