@@ -3,29 +3,31 @@ const multer = require('multer');
 const bodyParser = require('body-parser');
 const path = require('path');
 const fs = require('fs');
-const mongoose = require('mongoose');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/remont-service';
+const DATA_FILE = path.join(__dirname, 'data.json');
 
-// Connect to MongoDB
-mongoose.connect(MONGODB_URI)
-    .then(() => console.log('MongoDB connected'))
-    .catch(err => console.error('MongoDB connection error:', err));
+// Load data from file
+let requests = [];
+if (fs.existsSync(DATA_FILE)) {
+    try {
+        const data = fs.readFileSync(DATA_FILE, 'utf8');
+        requests = JSON.parse(data);
+    } catch (err) {
+        console.error('Error loading data:', err);
+        requests = [];
+    }
+}
 
-// Request Schema
-const requestSchema = new mongoose.Schema({
-    name: String,
-    phone: String,
-    address: String,
-    description: String,
-    image: String,
-    status: { type: String, default: 'pending' },
-    createdAt: { type: Date, default: Date.now }
-});
-
-const Request = mongoose.model('Request', requestSchema);
+// Save data to file
+function saveData() {
+    try {
+        fs.writeFileSync(DATA_FILE, JSON.stringify(requests, null, 2));
+    } catch (err) {
+        console.error('Error saving data:', err);
+    }
+}
 
 // Middleware
 app.use(bodyParser.json());
@@ -54,58 +56,59 @@ const upload = multer({
 });
 
 // API Routes
-app.get('/api/requests', async (req, res) => {
-    try {
-        const requests = await Request.find().sort({ createdAt: -1 });
-        res.json(requests);
-    } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
-    }
+app.get('/api/requests', (req, res) => {
+    res.json(requests);
 });
 
-app.post('/api/requests', upload.single('image'), async (req, res) => {
+app.post('/api/requests', upload.single('image'), (req, res) => {
     try {
-        const newRequest = new Request({
+        const newRequest = {
+            id: Date.now(),
             name: req.body.name,
             phone: req.body.phone,
             address: req.body.address,
             description: req.body.description,
-            image: req.file ? `/uploads/${req.file.filename}` : null
-        });
+            image: req.file ? `/uploads/${req.file.filename}` : null,
+            status: 'pending',
+            createdAt: new Date().toISOString()
+        };
 
-        await newRequest.save();
+        requests.push(newRequest);
+        saveData();
         res.json({ success: true, request: newRequest });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
 });
 
-app.put('/api/requests/:id', async (req, res) => {
+app.put('/api/requests/:id', (req, res) => {
     try {
-        const request = await Request.findByIdAndUpdate(
-            req.params.id,
-            { status: req.body.status },
-            { new: true }
-        );
+        const id = parseInt(req.params.id);
+        const request = requests.find(r => r.id === id);
 
         if (!request) {
             return res.status(404).json({ success: false, error: 'Request not found' });
         }
 
+        request.status = req.body.status;
+        saveData();
         res.json({ success: true, request });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
 });
 
-app.delete('/api/requests/:id', async (req, res) => {
+app.delete('/api/requests/:id', (req, res) => {
     try {
-        const request = await Request.findByIdAndDelete(req.params.id);
+        const id = parseInt(req.params.id);
+        const index = requests.findIndex(r => r.id === id);
 
-        if (!request) {
+        if (index === -1) {
             return res.status(404).json({ success: false, error: 'Request not found' });
         }
 
+        requests.splice(index, 1);
+        saveData();
         res.json({ success: true });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
