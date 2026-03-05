@@ -53,57 +53,63 @@ const upload = multer({
     limits: { fileSize: 5 * 1024 * 1024 }
 });
 
-// In-memory database
-let requests = [];
-let requestIdCounter = 1;
-
 // API Routes
-app.get('/api/requests', (req, res) => {
-    res.json(requests);
+app.get('/api/requests', async (req, res) => {
+    try {
+        const requests = await Request.find().sort({ createdAt: -1 });
+        res.json(requests);
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
 });
 
-app.post('/api/requests', upload.single('image'), (req, res) => {
+app.post('/api/requests', upload.single('image'), async (req, res) => {
     try {
-        const newRequest = {
-            id: requestIdCounter++,
+        const newRequest = new Request({
             name: req.body.name,
             phone: req.body.phone,
             address: req.body.address,
             description: req.body.description,
-            image: req.file ? `/uploads/${req.file.filename}` : null,
-            status: 'pending',
-            createdAt: new Date().toISOString()
-        };
+            image: req.file ? `/uploads/${req.file.filename}` : null
+        });
 
-        requests.push(newRequest);
+        await newRequest.save();
         res.json({ success: true, request: newRequest });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
 });
 
-app.put('/api/requests/:id', (req, res) => {
-    const id = parseInt(req.params.id);
-    const request = requests.find(r => r.id === id);
+app.put('/api/requests/:id', async (req, res) => {
+    try {
+        const request = await Request.findByIdAndUpdate(
+            req.params.id,
+            { status: req.body.status },
+            { new: true }
+        );
 
-    if (!request) {
-        return res.status(404).json({ success: false, error: 'Request not found' });
+        if (!request) {
+            return res.status(404).json({ success: false, error: 'Request not found' });
+        }
+
+        res.json({ success: true, request });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
     }
-
-    request.status = req.body.status;
-    res.json({ success: true, request });
 });
 
-app.delete('/api/requests/:id', (req, res) => {
-    const id = parseInt(req.params.id);
-    const index = requests.findIndex(r => r.id === id);
+app.delete('/api/requests/:id', async (req, res) => {
+    try {
+        const request = await Request.findByIdAndDelete(req.params.id);
 
-    if (index === -1) {
-        return res.status(404).json({ success: false, error: 'Request not found' });
+        if (!request) {
+            return res.status(404).json({ success: false, error: 'Request not found' });
+        }
+
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
     }
-
-    requests.splice(index, 1);
-    res.json({ success: true });
 });
 
 // Serve HTML pages
