@@ -3,9 +3,29 @@ const multer = require('multer');
 const bodyParser = require('body-parser');
 const path = require('path');
 const fs = require('fs');
+const mongoose = require('mongoose');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/remont-service';
+
+// Connect to MongoDB
+mongoose.connect(MONGODB_URI)
+    .then(() => console.log('MongoDB connected'))
+    .catch(err => console.error('MongoDB connection error:', err));
+
+// Request Schema
+const requestSchema = new mongoose.Schema({
+    name: String,
+    phone: String,
+    address: String,
+    description: String,
+    image: String,
+    status: { type: String, default: 'pending' },
+    createdAt: { type: Date, default: Date.now }
+});
+
+const Request = mongoose.model('Request', requestSchema);
 
 // Middleware
 app.use(bodyParser.json());

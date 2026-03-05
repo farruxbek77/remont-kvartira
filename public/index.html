@@ -1,4 +1,4 @@
-!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru">
 
 <head>
@@ -1695,7 +1695,7 @@
                         <textarea rows="4" data-i18n-ph="f_comment_ph"
                             placeholder="Опишите ваш объект и пожелания..."></textarea>
                     </div>
-                    <button class="submit-btn" onclick="alert(i18n[currentLang].f_alert)">
+                    <button class="submit-btn">
                         Отправить заявку →
                     </button>
                 </div>
@@ -2035,11 +2035,10 @@
                 });
             });
 
-            // Submit button
+            // Submit button - faqat matnini yangilaymiz, onclick'ga tegmaymiz
             const submitBtn = document.querySelector('.submit-btn');
             if (submitBtn) {
                 submitBtn.textContent = t.f_submit;
-                submitBtn.onclick = () => alert(t.f_alert);
             }
 
             // Lang buttons active state
