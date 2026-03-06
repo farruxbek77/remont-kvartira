@@ -2090,6 +2090,31 @@
         // Init
         applyLang('ru');
 
+        // =================== TELEGRAM BOT CONFIG ===================
+        // @ProFix_Renovatione uchun bot sozlamasi
+        // Bot yaratish: @BotFather ga /newbot yuboring
+        // Quyidagilarni to'ldiring:
+        const TG_BOT_TOKEN = 'YOUR_BOT_TOKEN'; // @BotFather dan oling
+        const TG_CHAT_ID = 'YOUR_CHAT_ID';   // @userinfobot dan oling
+
+        async function sendToTelegram(app) {
+            const msg = `🏗 *Yangi ariza — МастерСтрой*\n\n` +
+                `👤 *Ism:* ${app.name}\n` +
+                `📞 *Telefon:* ${app.phone}\n` +
+                `🏠 *Obyekt:* ${app.type || '—'}\n` +
+                `📐 *Maydon:* ${app.area ? app.area + ' m²' : '—'}\n` +
+                `💰 *Byudjet:* ${app.budget || '—'}\n` +
+                `💬 *Izoh:* ${app.comment || '—'}\n` +
+                `🕐 *Vaqt:* ${new Date(app.date).toLocaleString('uz-UZ')}`;
+            try {
+                await fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ chat_id: TG_CHAT_ID, text: msg, parse_mode: 'Markdown' })
+                });
+            } catch (e) { console.log('Telegram xato:', e); }
+        }
+
         // =================== ADMIN PANEL ===================
         let applications = JSON.parse(localStorage.getItem('ms_applications') || '[]');
 
@@ -2117,7 +2142,7 @@
         function doLogin() {
             const u = document.getElementById('adminUser').value.trim();
             const p = document.getElementById('adminPass').value.trim();
-            if (u === 'admin' && p === 'admin123') {
+            if (u === 'admin' && p === 'admin2013') {
                 document.getElementById('adminLogin').style.display = 'none';
                 document.getElementById('adminDashboard').style.display = 'flex';
                 renderDashboard();
@@ -2211,7 +2236,7 @@
         }
 
         // =================== FORM SUBMIT ===================
-        document.querySelector('.submit-btn').addEventListener('click', function () {
+        document.querySelector('.submit-btn').addEventListener('click', async function () {
             const form = this.closest('.contact-form');
             const inputs = form.querySelectorAll('input, select, textarea');
             const name = inputs[0].value.trim();
@@ -2226,18 +2251,28 @@
                 return;
             }
 
+            const origText = this.textContent;
+            this.textContent = '⏳ Yuborilmoqda...';
+            this.disabled = true;
+
             const app = {
                 name, phone,
                 type: type === i18n[currentLang].f_type0 ? '' : type,
-                area, budget,
-                comment,
+                area, budget, comment,
                 date: new Date().toISOString(),
                 viewed: false
             };
+
+            // Telegram ga yuborish
+            await sendToTelegram(app);
+
+            // Mahalliy admin panelga saqlash
             applications.unshift(app);
             localStorage.setItem('ms_applications', JSON.stringify(applications));
 
             inputs.forEach(el => { if (el.tagName !== 'SELECT') el.value = ''; });
+            this.textContent = origText;
+            this.disabled = false;
             alert(i18n[currentLang].f_alert);
         });
 
