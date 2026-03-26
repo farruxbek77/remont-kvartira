@@ -1,20 +1,8 @@
 {
     "rewrites": [
         {
-            "source": "/",
-            "destination": "/index.html"
-        },
-        {
-            "source": "/client",
-            "destination": "/client.html"
-        },
-        {
-            "source": "/admin",
-            "destination": "/admin.html"
-        },
-        {
-            "source": "/admin-login",
-            "destination": "/admin-login.html"
+            "source": "/api/(.*)",
+            "destination": "/api"
         }
     ]
 }
