@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ панели - Кириш</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 48px 40px;
+            width: 100%;
+            max-width: 420px;
+            animation: slideUp 0.6s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 36px;
+        }
+
+        .logo {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
+        .login-header h1 {
+            font-size: 28px;
+            color: #1e3c72;
+            margin-bottom: 8px;
+        }
+
+        .login-header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 20px;
+            display: none;
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-10px);
+            }
+
+            75% {
+                transform: translateX(10px);
+            }
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(52, 152, 219, 0.4);
+        }
+
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        .login-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 24px;
+            color: #666;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+
+        .back-link:hover {
+            color: #3498db;
+        }
+
+        .info-box {
+            background: #e8f4f8;
+            border-left: 4px solid #3498db;
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 24px;
+            font-size: 13px;
+            color: #555;
+        }
+
+        .info-box strong {
+            color: #2980b9;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <div class="logo">🔧</div>
+            <h1>REMONT PRO</h1>
+            <p>Админ панелига кириш</p>
+        </div>
+
+        <div id="errorMessage" class="error-message">
+            ❌ Логин ёки парол нотўғри!
+        </div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">👤 Логин</label>
+                <input type="text" id="username" name="username" required autocomplete="username" placeholder="admin">
+            </div>
+
+            <div class="form-group">
+                <label for="password">🔒 Парол</label>
+                <input type="password" id="password" name="password" required autocomplete="current-password"
+                    placeholder="••••••••">
+            </div>
+
+            <button type="submit" class="login-btn" id="loginBtn">
+                Кириш →
+            </button>
+        </form>
+
+        <a href="/" class="back-link">← Бош саҳифага қайтиш</a>
+
+        <div class="info-box">
+            <strong>Эслатма:</strong> Бу статик версия. Маълумотлар localStorage да сақланади.
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('loginForm');
+        const errorMessage = document.getElementById('errorMessage');
+        const loginBtn = document.getElementById('loginBtn');
+
+        // Admin credentials
+        const ADMIN_USERNAME = 'admin';
+        const ADMIN_PASSWORD = 'admin2013';
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            // Disable button
+            loginBtn.disabled = true;
+            loginBtn.textContent = '⏳ Текширилмоқда...';
+
+            // Simulate authentication delay
+            setTimeout(() => {
+                if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+                    // Success
+                    sessionStorage.setItem('adminLoggedIn', 'true');
+                    window.location.href = '/admin.html';
+                } else {
+                    // Error
+                    errorMessage.classList.add('show');
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = 'Кириш →';
+
+                    // Hide error after 3 seconds
+                    setTimeout(() => {
+                        errorMessage.classList.remove('show');
+                    }, 3000);
+                }
+            }, 800);
+        });
+
+        // Check if already logged in
+        if (sessionStorage.getItem('adminLoggedIn')) {
+            window.location.href = '/admin.html';
+        }
+    </script>
+</body>
+
+</html>
